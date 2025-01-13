@@ -1,5 +1,6 @@
 const request = require('supertest');
-const app = require('../app'); 
+const app = require('../app');
+const mongoose = require('mongoose');
 
 describe('GET /api/about', () => {
     it('should return a list of developers', async () => {
@@ -10,4 +11,9 @@ describe('GET /api/about', () => {
         expect(response.body[0]).toHaveProperty('firstname');
         expect(response.body[0]).toHaveProperty('lastname');
     });
+});
+
+// Add afterAll to close the MongoDB connection
+afterAll(async () => {
+    await mongoose.connection.close();
 });

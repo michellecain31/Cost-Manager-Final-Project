@@ -6,25 +6,18 @@ const Cost = require('../models/cost');
 const Report = require('../models/computedreports');
 
 // POST request to add a new cost
-router.post('/', async (req, res) => { // Endpoint for '/api/addcost'
+router.post('/', async (req, res) => {
     try {
-        const user_id = req.body.userid || '123123'; // Default user_id if not provided
-        const year = req.body.year || new Date().getFullYear();
-        const month = req.body.month || new Date().getMonth() + 1; // Months are 0-indexed
-        const day = req.body.day || new Date().getDate();
-        const id = 'id' + Math.random().toString(16).slice(2); // Generate a unique ID for the cost
-        const description = req.body.description;
-        const category = req.body.category;
-        const sum = req.body.sum;
+        const { userid, description, category, sum, year, month, day } = req.body;
 
         // Validate required properties
-        if (!description || !category || !sum) {
+        if (!userid || !description || !category || sum === undefined) {
             return res.status(400).json({ error: 'One or more required properties are missing' });
         }
 
         // Validate category input
         const validCategories = ['food', 'health', 'housing', 'sport', 'education', 'transportation', 'other'];
-        if (!validCategories.includes(category)) {
+        if (!validCategories.includes(category.toLowerCase())) {
             return res.status(400).json({ error: 'Invalid category input' });
         }
 
@@ -34,38 +27,45 @@ router.post('/', async (req, res) => { // Endpoint for '/api/addcost'
         }
 
         // Validate month and day
-        if (month < 1 || month > 12) {
+        const validYear = year || new Date().getFullYear();
+        const validMonth = month || new Date().getMonth() + 1; // Months are 0-indexed in JavaScript
+        const validDay = day || new Date().getDate();
+
+        if (validMonth < 1 || validMonth > 12) {
             return res.status(400).json({ error: 'Invalid month input' });
         }
-        if (day < 1 || day > 31) {
+        if (validDay < 1 || validDay > 31) {
             return res.status(400).json({ error: 'Invalid day input' });
         }
 
+        // Generate a unique ID for the cost
+        const costId = 'id' + Math.random().toString(16).slice(2);
+
         // Build the cost object
         const newCost = new Cost({
-            userid: user_id,
-            year: year,
-            month: month,
-            day: day,
-            id: id,
-            description: description,
-            category: category,
-            sum: sum
+            userid,
+            description,
+            category: category.toLowerCase(), // Store category in lowercase for consistency
+            sum,
+            year: validYear,
+            month: validMonth,
+            day: validDay,
+            id: costId,
         });
 
         // Save the cost to the database
-        const savedCost = await Cost.create(newCost);
+        const savedCost = await newCost.save();
 
         // Create or update a computed report
-        const reportName = `${year}${month}${user_id}`;
+        const reportName = `${validYear}${validMonth}${userid}`;
         const existingReport = await Report.findOne({ name: reportName });
 
         if (existingReport) {
             // Update the existing report
-            existingReport.computedReport[category].push({
-                day: day,
-                description: description,
-                sum: sum
+            existingReport.computedReport[category.toLowerCase()].push({
+                day: validDay,
+                description,
+                sum,
             });
             await existingReport.save();
         } else {
@@ -77,24 +77,26 @@ router.post('/', async (req, res) => { // Endpoint for '/api/addcost'
                 sport: [],
                 education: [],
                 transportation: [],
-                other: []
+                other: [],
             };
-            newReport[category].push({
-                day: day,
-                description: description,
-                sum: sum
+
+            newReport[category.toLowerCase()].push({
+                day: validDay,
+                description,
+                sum,
             });
 
             const computedReport = new Report({
                 name: reportName,
-                computedReport: newReport
+                computedReport: newReport,
             });
             await computedReport.save();
         }
 
+        // Return success response
         res.status(201).json({ message: 'Cost added successfully', cost: savedCost });
     } catch (error) {
-        console.error(error);
+        console.error('Error adding cost:', error);
         res.status(500).json({ error: error.message });
     }
 });

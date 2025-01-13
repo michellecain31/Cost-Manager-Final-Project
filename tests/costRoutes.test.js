@@ -1,23 +1,25 @@
 const request = require('supertest');
-const app = require('../app'); 
-describe('POST /api/add', () => {
+const app = require('../app');
+const mongoose = require('mongoose');
+
+describe('POST /api/addcost', () => {
     it('should add a new cost item and return it', async () => {
-        const response = await request(app).post('/api/add').send({
+        const response = await request(app).post('/api/addcost').send({
             userid: '123123',
             description: 'Groceries',
-            category: 'Food',
+            category: 'food',
             sum: 50,
         });
 
-        expect(response.statusCode).toBe(200);
-        expect(response.body).toHaveProperty('userid', '123123');
-        expect(response.body).toHaveProperty('description', 'Groceries');
-        expect(response.body).toHaveProperty('category', 'Food');
-        expect(response.body).toHaveProperty('sum', 50);
+        expect(response.statusCode).toBe(201); // Updated to match the status code
+        expect(response.body.cost).toHaveProperty('userid', '123123');
+        expect(response.body.cost).toHaveProperty('description', 'Groceries');
+        expect(response.body.cost).toHaveProperty('category', 'food');
+        expect(response.body.cost).toHaveProperty('sum', 50);
     });
 
     it('should return an error for missing required fields', async () => {
-        const response = await request(app).post('/api/add').send({
+        const response = await request(app).post('/api/addcost').send({
             description: 'Groceries',
         });
 
@@ -26,3 +28,7 @@ describe('POST /api/add', () => {
     });
 });
 
+// Add afterAll to close the MongoDB connection
+afterAll(async () => {
+    await mongoose.connection.close();
+});
