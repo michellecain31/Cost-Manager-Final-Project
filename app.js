@@ -1,10 +1,9 @@
-// Michelle Cain
+// Michelle Cain Segev Cohen
 
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const createError = require('http-errors');
-const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 
@@ -29,31 +28,27 @@ mongoose
     });
 
 // Import routes
-const indexRoutes = require('./routes/indexRoutes');
 const userRoutes = require('./routes/userRoutes');
+const aboutRoutes = require('./routes/aboutRoutes');
 const costRoutes = require('./routes/costRoutes');
 const reportRoutes = require('./routes/reportRoutes');
-const aboutRoutes = require('./routes/aboutRoutes');
 
 // Use routes
-app.use('/', indexRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/addcost', costRoutes);
-app.use('/api/report', reportRoutes);
-app.use('/api/about', aboutRoutes);
+app.use('/api/users', userRoutes);       // User-related endpoints
+app.use('/api/about', aboutRoutes);     // Developers' information endpoint
+app.use('/api/addcost', costRoutes);    // Cost addition endpoints
+app.use('/api/report', reportRoutes);   // Monthly report endpoints
 
 // Catch 404 and forward to error handler
-app.use(function (req, res, next) {
-    next(createError(404));
+app.use((req, res, next) => {
+    next(createError(404)); // Create a 404 error if route not found
 });
 
 // Error handler
-app.use(function (err, req, res, next) {
-    // Set locals, only providing error in development
+app.use((err, req, res, next) => {
     res.locals.message = err.message;
     res.locals.error = req.app.get('env') === 'development' ? err : {};
 
-    // Render the error page
     res.status(err.status || 500);
     res.json({ error: res.locals.message });
 });
