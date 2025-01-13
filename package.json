@@ -1,0 +1,25 @@
+{
+  "name": "serverside_project",
+  "version": "1.0.0",
+  "description": "A cost manager RESTful web service project",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "test": "jest"
+  },
+  "keywords": ["cost-manager", "REST", "server-side", "Node.js", "Express", "MongoDB"],
+  "author": "Michelle Cain",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mongoose": "^8.9.4"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.9",
+    "supertest": "^7.0.0"
+  }
+}
+
