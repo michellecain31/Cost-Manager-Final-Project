@@ -6,7 +6,7 @@ const Cost = require('../models/cost');
 const Report = require('../models/computedreports');
 
 // POST request to add a new cost
-router.post('/add', async (req, res, next) => {
+router.post('/', async (req, res) => { // Endpoint for '/api/addcost'
     try {
         const user_id = req.body.userid || '123123'; // Default user_id if not provided
         const year = req.body.year || new Date().getFullYear();
@@ -58,8 +58,8 @@ router.post('/add', async (req, res, next) => {
 
         // Create or update a computed report
         const reportName = `${year}${month}${user_id}`;
-
         const existingReport = await Report.findOne({ name: reportName });
+
         if (existingReport) {
             // Update the existing report
             existingReport.computedReport[category].push({
