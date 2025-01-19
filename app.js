@@ -20,7 +20,7 @@ app.use(cookieParser());
 
 // Connect to MongoDB Atlas
 mongoose
-    .connect(process.env.MONGO_URI)
+    .connect(process.env.MONGO_URI) // Ensure this is correct
     .then(() => console.log('MongoDB Connected'))
     .catch((error) => {
         console.error('MongoDB Connection Error:', error.message);
@@ -32,6 +32,11 @@ const userRoutes = require('./routes/userRoutes');
 const aboutRoutes = require('./routes/aboutRoutes');
 const costRoutes = require('./routes/costRoutes');
 const reportRoutes = require('./routes/reportRoutes');
+
+// Add a route for the home page
+app.get('/', (req, res) => {
+    res.send('Welcome to the Cost Manager API!');
+});
 
 // Use routes
 app.use('/api/users', userRoutes);       // User-related endpoints
