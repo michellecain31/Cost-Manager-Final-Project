@@ -2,41 +2,58 @@
 
 const express = require('express');
 const router = express.Router();
-const Report = require('../models/computedreports');
+const Cost = require('../models/cost');
 
-// GET request to retrieve a monthly report
+// Predefined categories
+const validCategories = ['food', 'health', 'housing', 'sport', 'education'];
+
+/**
+ * @route GET /api/report
+ * @description Retrieve a monthly report of costs grouped by category
+ * @access Public
+ * @param {Object} req - Express request object
+ * @param {Object} req.query - Query parameters
+ * @param {string} req.query.user_id - The user ID
+ * @param {number} req.query.year - The year
+ * @param {number} req.query.month - The month
+ * @returns {JSON} - Grouped costs by category
+ */
 router.get('/', async (req, res) => {
     try {
-        const { year, month, user_id } = req.query; // Extract query parameters
+        const { user_id, year, month } = req.query;
 
         // Validate required query parameters
-        if (!year || !month || !user_id) {
-            return res.status(400).json({ error: 'One or more of the required properties are missing' });
+        if (!user_id || !year || !month) {
+            return res.status(400).json({ error: 'One or more required properties are missing' });
         }
 
-        // Create a name for the computed report
-        const reportName = `${year}${month}${user_id}`;
+        // Retrieve costs for the specified user, year, and month
+        const costs = await Cost.find({
+            userid: user_id,
+            year: parseInt(year),
+            month: parseInt(month),
+        });
 
-        // Check if a computed report exists for this date
-        const report = await Report.findOne({ name: reportName });
+        // Initialize grouped costs with all categories
+        const groupedCosts = validCategories.reduce((acc, category) => {
+            acc[category] = [];
+            return acc;
+        }, {});
 
-        if (report) {
-            // Return the computed report as an array of items
-            const reportArray = Object.entries(report.computedReport).flatMap(([category, items]) =>
-                items.map((item) => ({
-                    category,
-                    ...item,
-                }))
-            );
+        // Populate grouped costs with data
+        costs.forEach((cost) => {
+            groupedCosts[cost.category].push({
+                description: cost.description,
+                sum: cost.sum,
+                day: cost.day,
+            });
+        });
 
-            return res.json(reportArray);
-        }
-
-        // Respond with an error if no report exists
-        return res.status(404).json({ error: 'No costs found for the specified date' });
+        // Return grouped costs
+        res.status(200).json(groupedCosts);
     } catch (error) {
-        console.error('Error fetching report:', error);
-        res.status(500).json({ error: error.message });
+        console.error('Error retrieving monthly report:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 

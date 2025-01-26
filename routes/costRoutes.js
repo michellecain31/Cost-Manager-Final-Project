@@ -3,9 +3,26 @@
 const express = require('express');
 const router = express.Router();
 const Cost = require('../models/cost');
-const Report = require('../models/computedreports');
 
-// POST request to add a new cost
+// Allowed categories for cost items
+const validCategories = ['food', 'health', 'housing', 'sport', 'education'];
+
+/**
+ * @route POST /api/addcost
+ * @description Adds a new cost item to the database
+ * @access Public
+ * @param {Object} req - Express request object
+ * @param {Object} req.body - The request body
+ * @param {string} req.body.userid - The ID of the user
+ * @param {string} req.body.description - Description of the cost
+ * @param {string} req.body.category - Category of the cost (must be one of the allowed categories)
+ * @param {number} req.body.sum - The cost amount
+ * @param {number} [req.body.year] - Year of the cost (defaults to the current year if not provided)
+ * @param {number} [req.body.month] - Month of the cost (defaults to the current month if not provided)
+ * @param {number} [req.body.day] - Day of the cost (defaults to the current day if not provided)
+ * @param {Object} res - Express response object
+ * @returns {JSON} - Success or error message with the cost details
+ */
 router.post('/', async (req, res) => {
     try {
         const { userid, description, category, sum, year, month, day } = req.body;
@@ -16,9 +33,8 @@ router.post('/', async (req, res) => {
         }
 
         // Validate category input
-        const validCategories = ['food', 'health', 'housing', 'sport', 'education', 'transportation', 'other'];
         if (!validCategories.includes(category.toLowerCase())) {
-            return res.status(400).json({ error: 'Invalid category input' });
+            return res.status(400).json({ error: `Invalid category. Allowed categories are: ${validCategories.join(', ')}` });
         }
 
         // Validate sum
@@ -26,9 +42,9 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ error: 'Sum cannot be negative' });
         }
 
-        // Validate month and day
+        // Validate date fields (year, month, day)
         const validYear = year || new Date().getFullYear();
-        const validMonth = month || new Date().getMonth() + 1; // Months are 0-indexed in JavaScript
+        const validMonth = month || new Date().getMonth() + 1;
         const validDay = day || new Date().getDate();
 
         if (validMonth < 1 || validMonth > 12) {
@@ -45,7 +61,7 @@ router.post('/', async (req, res) => {
         const newCost = new Cost({
             userid,
             description,
-            category: category.toLowerCase(), // Store category in lowercase for consistency
+            category: category.toLowerCase(),
             sum,
             year: validYear,
             month: validMonth,
@@ -56,47 +72,16 @@ router.post('/', async (req, res) => {
         // Save the cost to the database
         const savedCost = await newCost.save();
 
-        // Create or update a computed report
-        const reportName = `${validYear}${validMonth}${userid}`;
-        const existingReport = await Report.findOne({ name: reportName });
-
-        if (existingReport) {
-            // Update the existing report
-            existingReport.computedReport[category.toLowerCase()].push({
-                day: validDay,
-                description,
-                sum,
-            });
-            await existingReport.save();
-        } else {
-            // Create a new computed report
-            const newReport = {
-                food: [],
-                health: [],
-                housing: [],
-                sport: [],
-                education: [],
-                transportation: [],
-                other: [],
-            };
-
-            newReport[category.toLowerCase()].push({
-                day: validDay,
-                description,
-                sum,
-            });
-
-            const computedReport = new Report({
-                name: reportName,
-                computedReport: newReport,
-            });
-            await computedReport.save();
-        }
+        // Log the added cost to the terminal
+        console.log('New cost added:', savedCost);
 
         // Return success response
         res.status(201).json({ message: 'Cost added successfully', cost: savedCost });
     } catch (error) {
+        // Log the error to the terminal
         console.error('Error adding cost:', error);
+
+        // Return error response
         res.status(500).json({ error: error.message });
     }
 });
