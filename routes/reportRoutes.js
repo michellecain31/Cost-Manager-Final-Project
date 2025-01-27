@@ -13,23 +13,23 @@ const validCategories = ['food', 'health', 'housing', 'sport', 'education'];
  * @access Public
  * @param {Object} req - Express request object
  * @param {Object} req.query - Query parameters
- * @param {string} req.query.user_id - The user ID
+ * @param {string} req.query.id - The user ID
  * @param {number} req.query.year - The year
  * @param {number} req.query.month - The month
  * @returns {JSON} - Grouped costs by category
  */
 router.get('/', async (req, res) => {
     try {
-        const { user_id, year, month } = req.query;
+        const { id, year, month } = req.query;
 
         // Validate required query parameters
-        if (!user_id || !year || !month) {
+        if (!id || !year || !month) {
             return res.status(400).json({ error: 'One or more required properties are missing' });
         }
 
         // Retrieve costs for the specified user, year, and month
         const costs = await Cost.find({
-            userid: user_id,
+            userid: id,
             year: parseInt(year),
             month: parseInt(month),
         });

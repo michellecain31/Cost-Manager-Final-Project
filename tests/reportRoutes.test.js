@@ -15,7 +15,7 @@ describe('GET /api/report', () => {
      */
     it('should return costs grouped by categories', async () => {
         const response = await request(app).get('/api/report').query({
-            user_id: '123123',
+            id: '123123', // Replaced user_id with id
             year: 2025,
             month: 1,
         });
