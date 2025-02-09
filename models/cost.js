@@ -19,7 +19,6 @@ const validCategories = ['food', 'health', 'housing', 'sport', 'education'];
  * @property {number} year - Year of the cost. Defaults to the current year.
  * @property {number} month - Month of the cost. Defaults to the current month.
  * @property {number} day - Day of the cost. Defaults to the current day.
- * @property {string} id - Unique ID of the cost. Defaults to a generated ObjectId.
  */
 const CostsSchema = new Schema({
     userid: {
@@ -40,21 +39,17 @@ const CostsSchema = new Schema({
         required: true,
     },
     year: {
-        type: Number, // Extracted from the date
+        type: Number,
         default: () => new Date().getFullYear(),
     },
     month: {
-        type: Number, // Extracted from the date
+        type: Number,
         default: () => new Date().getMonth() + 1, // Months are 0-indexed in JavaScript
     },
     day: {
-        type: Number, // Extracted from the date
+        type: Number,
         default: () => new Date().getDate(),
-    },
-    id: {
-        type: String,
-        default: mongoose.Types.ObjectId, // Generate a unique ID for each cost
-    },
+    }
 });
 
 /**

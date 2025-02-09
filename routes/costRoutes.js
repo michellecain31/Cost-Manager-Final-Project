@@ -8,22 +8,11 @@ const Cost = require('../models/cost');
 const validCategories = ['food', 'health', 'housing', 'sport', 'education'];
 
 /**
- * @route POST /api/addcost
+ * @route POST /api/add
  * @description Adds a new cost item to the database
  * @access Public
- * @param {Object} req - Express request object
- * @param {Object} req.body - The request body
- * @param {string} req.body.userid - The ID of the user
- * @param {string} req.body.description - Description of the cost
- * @param {string} req.body.category - Category of the cost (must be one of the allowed categories)
- * @param {number} req.body.sum - The cost amount
- * @param {number} [req.body.year] - Year of the cost (defaults to the current year if not provided)
- * @param {number} [req.body.month] - Month of the cost (defaults to the current month if not provided)
- * @param {number} [req.body.day] - Day of the cost (defaults to the current day if not provided)
- * @param {Object} res - Express response object
- * @returns {JSON} - Success or error message with the cost details
  */
-router.post('/', async (req, res) => {
+router.post('/add', async (req, res) => {
     try {
         const { userid, description, category, sum, year, month, day } = req.body;
 
@@ -42,7 +31,7 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ error: 'Sum cannot be negative' });
         }
 
-        // Validate date fields (year, month, day)
+        // Validate date fields
         const validYear = year || new Date().getFullYear();
         const validMonth = month || new Date().getMonth() + 1;
         const validDay = day || new Date().getDate();
@@ -54,10 +43,7 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ error: 'Invalid day input' });
         }
 
-        // Generate a unique ID for the cost
-        const costId = 'id' + Math.random().toString(16).slice(2);
-
-        // Build the cost object
+        // Create new cost object
         const newCost = new Cost({
             userid,
             description,
@@ -66,22 +52,15 @@ router.post('/', async (req, res) => {
             year: validYear,
             month: validMonth,
             day: validDay,
-            id: costId,
         });
 
-        // Save the cost to the database
+        // Save to database
         const savedCost = await newCost.save();
-
-        // Log the added cost to the terminal
-        console.log('New cost added:', savedCost);
 
         // Return success response
         res.status(201).json({ message: 'Cost added successfully', cost: savedCost });
     } catch (error) {
-        // Log the error to the terminal
         console.error('Error adding cost:', error);
-
-        // Return error response
         res.status(500).json({ error: error.message });
     }
 });

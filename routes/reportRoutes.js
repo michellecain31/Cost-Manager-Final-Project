@@ -16,7 +16,7 @@ const validCategories = ['food', 'health', 'housing', 'sport', 'education'];
  * @param {string} req.query.id - The user ID
  * @param {number} req.query.year - The year
  * @param {number} req.query.month - The month
- * @returns {JSON} - Grouped costs by category
+ * @returns {JSON} - Report with costs grouped by category
  */
 router.get('/', async (req, res) => {
     try {
@@ -34,7 +34,7 @@ router.get('/', async (req, res) => {
             month: parseInt(month),
         });
 
-        // Initialize grouped costs with all categories
+        // Initialize grouped costs structure with all categories
         const groupedCosts = validCategories.reduce((acc, category) => {
             acc[category] = [];
             return acc;
@@ -43,14 +43,24 @@ router.get('/', async (req, res) => {
         // Populate grouped costs with data
         costs.forEach((cost) => {
             groupedCosts[cost.category].push({
-                description: cost.description,
                 sum: cost.sum,
+                description: cost.description,
                 day: cost.day,
             });
         });
 
-        // Return grouped costs
-        res.status(200).json(groupedCosts);
+        // Build the final report structure
+        const report = {
+            userid: id,
+            year: parseInt(year),
+            month: parseInt(month),
+            costs: Object.entries(groupedCosts).map(([category, items]) => ({
+                [category]: items,
+            })),
+        };
+
+        // Return the report
+        res.status(200).json(report);
     } catch (error) {
         console.error('Error retrieving monthly report:', error);
         res.status(500).json({ error: 'Internal server error' });

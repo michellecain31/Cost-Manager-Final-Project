@@ -46,9 +46,9 @@ app.get('/', (req, res) => {
 
 // Use routes
 app.use('/api/users', userRoutes);       // User-related endpoints
-app.use('/api/about', aboutRoutes);     // Developers' information endpoint
-app.use('/api/addcost', costRoutes);    // Cost addition endpoints
-app.use('/api/report', reportRoutes);   // Monthly report endpoints
+app.use('/api/about', aboutRoutes);      // Developers' information endpoint
+app.use('/api', costRoutes);             // Cost addition endpoints - Fix: Ensures /api/add works
+app.use('/api/report', reportRoutes);    // Monthly report endpoints
 
 /**
  * Catch 404 and forward to error handler
@@ -59,10 +59,6 @@ app.use((req, res, next) => {
 
 /**
  * Error handler
- * @param {Object} err - Error object
- * @param {Object} req - HTTP request object
- * @param {Object} res - HTTP response object
- * @param {Function} next - Next middleware function
  */
 app.use((err, req, res, next) => {
     res.locals.message = err.message;
